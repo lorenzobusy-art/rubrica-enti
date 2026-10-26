@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rubrica Enti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: una colonna centrata, barra strumenti in alto, elenco a righe che diventa schede su telefono */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --line:#d9dfe5; --fg:#18222c; --muted:#5b6977;
+  --accent:#1f5f8b; --accent-fg:#ffffff; --accent-soft:#e3eef6;
+  --alert:#b3261e; --alert-soft:#fbe9e7; --alert-line:#e8a49e;
+  --ok:#2e7d4f;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11171d; --surface:#1a222b; --line:#2c3743; --fg:#e6ecf1; --muted:#9aa8b5;
+  --accent:#6fb0dd; --accent-fg:#0d1720; --accent-soft:#1d3142;
+  --alert:#ff8a80; --alert-soft:#3a1d1c; --alert-line:#7a3430; --ok:#7fd1a0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11171d; --surface:#1a222b; --line:#2c3743; --fg:#e6ecf1; --muted:#9aa8b5;
+  --accent:#6fb0dd; --accent-fg:#0d1720; --accent-soft:#1d3142;
+  --alert:#ff8a80; --alert-soft:#3a1d1c; --alert-line:#7a3430; --ok:#7fd1a0; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{color-scheme:light}
+body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;margin:0;text-wrap:balance;letter-spacing:.01em}
+h1{font-size:2rem;line-height:1.1}
+h2{font-size:1.35rem}
+.muted{color:var(--muted)}
+.small{font-size:.875rem}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--surface);padding:7px 12px;font-weight:600}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+button.danger{color:var(--alert);border-color:var(--alert-line)}
+button.ghost{background:transparent;border-color:transparent;color:var(--accent);padding:6px 8px}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 11px}
+textarea{min-height:70px;resize:vertical}
+label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.9rem}
+.lbl{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+
+/* Login */
+.gate{max-width:420px;margin:8vh auto 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:28px;display:flex;flex-direction:column;gap:16px}
+.gate form{display:flex;flex-direction:column;gap:12px}
+.err{color:var(--alert);font-size:.9rem;min-height:1.2em}
+.gate-links{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px}
+.notice{background:var(--accent-soft);border-radius:8px;padding:12px 14px;font-size:.95rem}
+
+/* Header */
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:2px solid var(--fg);padding-bottom:12px}
+.who{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.pill.alert{background:var(--alert-soft);color:var(--alert)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.toolbar input{flex:1 1 240px;min-width:0}
+select{font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 11px;max-width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.85rem;font-weight:600;padding:4px 11px;border-radius:999px;background:var(--surface)}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.chip span{font-variant-numeric:tabular-nums;opacity:.75;margin-left:4px}
+.cat-tag{display:block;font-size:.75rem;line-height:16px;height:16px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:4px}
+/* Su computer i recapiti e le note partono alla riga del nome, sotto l'etichetta della categoria */
+@media (min-width:761px){.row:not(.head) > div:not(.c-nome):not(.actions){padding-top:20px}.row:not(.head) .nome{line-height:1.6}.row:not(.head) .num,.row:not(.head) .note{min-height:1.6em;line-height:1.6}}
+.req-mark{color:var(--alert)}
+.summary{display:flex;gap:16px;flex-wrap:wrap;font-size:.95rem}
+.summary b{font-variant-numeric:tabular-nums}
+
+/* Elenco */
+.list{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) minmax(0,1.3fr) minmax(0,2fr) 200px;gap:14px;padding:12px 16px;border-top:1px solid var(--line);align-items:start}
+.row.head{border-top:0;background:var(--bg);padding-block:9px}
+.row.flag{background:var(--alert-soft);box-shadow:inset 4px 0 0 var(--alert)}
+.row.flag .nome{color:var(--alert)}
+.nome{font-weight:600;font-size:1.02rem;overflow-wrap:anywhere}
+.badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.num{font-family:var(--f-mono);font-size:.92rem;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:4px;flex-wrap:wrap;overflow-wrap:anywhere}
+.num a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted)}
+.copy{font-family:var(--f-body);font-size:.75rem;padding:2px 6px;border-radius:4px}
+.note{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted);font-size:.95rem}
+.actions{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.cell-lbl{display:none}
+.empty{padding:32px 16px;text-align:center;color:var(--muted)}
+
+@media (max-width:760px){
+  .row.head{display:none}
+  .row{grid-template-columns:1fr 1fr;gap:8px 12px}
+  .row > .c-nome,.row > .c-note,.row > .actions{grid-column:1 / -1}
+  .actions{justify-content:flex-start}
+  .cell-lbl{display:block}
+}
+
+/* Pannello host */
+.panel{background:var(--surface);border:1px solid var(--alert-line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.req{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.req:first-of-type{border-top:0;padding-top:0}
+.diff{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:4px 12px;font-size:.92rem;overflow-x:auto}
+.diff .chg{color:var(--alert);font-weight:600}
+.diff div{overflow-wrap:anywhere}
+
+/* Dialog */
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);padding:0;width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgba(10,16,22,.45)}
+dialog form{padding:22px;display:flex;flex-direction:column;gap:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:480px){.grid2{grid-template-columns:1fr}}
+.dlg-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:4px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;z-index:20;max-width:calc(100vw - 32px)}
+@media (prefers-reduced-motion:no-preference){.row{transition:background .2s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- Accesso -->
+  <section class="gate" id="gate">
+    <div>
+      <div class="lbl">Rubrica condivisa</div>
+      <h1>Rubrica Enti</h1>
+    </div>
+    <div id="gateStatus" class="notice small">Caricamento…</div>
+    <form id="loginForm" hidden>
+      <label for="lUser">Nome utente
+        <input id="lUser" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+      </label>
+      <label for="pw">Password
+        <input id="pw" type="password" autocomplete="current-password" required>
+      </label>
+      <div class="err" id="loginErr"></div>
+      <button class="primary" type="submit">Entra</button>
+      <div class="gate-links">
+        <button class="ghost" type="button" id="toRegister">Crea un account</button>
+        <button class="ghost" type="button" id="toggleHost">Accesso host</button>
+      </div>
+    </form>
+    <form id="regForm" hidden>
+      <h2>Crea un account</h2>
+      <p class="muted small" style="margin:0">Bastano un nome utente e una password. Potrai entrare dopo che l'host avrà approvato l'account.</p>
+      <label for="rUser">Nome utente
+        <input id="rUser" autocomplete="username" autocapitalize="off" spellcheck="false" required minlength="3" maxlength="30">
+      </label>
+      <label for="rPw">Password (almeno 8 caratteri, una maiuscola e un numero)
+        <input id="rPw" type="password" autocomplete="new-password" required minlength="8">
+      </label>
+      <label for="rPw2">Ripeti la password
+        <input id="rPw2" type="password" autocomplete="new-password" required minlength="8">
+      </label>
+      <div class="err" id="regErr"></div>
+      <button class="primary" type="submit" id="regOk">Crea account</button>
+      <button class="ghost" type="button" id="regBack">Ho già un account</button>
+    </form>
+    <form id="newPwForm" hidden>
+      <h2>Scegli una nuova password</h2>
+      <p class="muted small" style="margin:0">L'host ha ripristinato la tua password. Scegline una nuova per continuare.</p>
+      <label for="nPw">Nuova password (almeno 8 caratteri, una maiuscola e un numero)
+        <input id="nPw" type="password" autocomplete="new-password" required minlength="8">
+      </label>
+      <label for="nPw2">Ripeti la nuova password
+        <input id="nPw2" type="password" autocomplete="new-password" required minlength="8">
+      </label>
+      <div class="err" id="nErr"></div>
+      <button class="primary" type="submit">Salva ed entra</button>
+    </form>
+    <form id="hostForm" hidden>
+      <label for="hpw">Password host
+        <input id="hpw" type="password" autocomplete="current-password" required>
+      </label>
+      <div class="err" id="hostErr"></div>
+      <button class="primary" type="submit">Entra come host</button>
+      <button class="ghost" type="button" id="toggleUser">Torna all'accesso normale</button>
+    </form>
+  </section>
+
+  <!-- App -->
+  <div id="app" hidden style="display:contents">
+    <header class="top">
+      <div>
+        <div class="lbl">Rubrica condivisa</div>
+        <h1>Rubrica Enti</h1>
+      </div>
+      <div class="who">
+        <span class="pill" id="rolePill">Utente</span>
+        <button class="ghost" id="logout">Esci</button>
+      </div>
+    </header>
+
+    <div class="summary">
+      <span><b id="sTot">0</b> enti</span>
+      <span style="color:var(--alert)"><b id="sFlag">0</b> modifiche da fare</span>
+    </div>
+
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="Cerca per nome, numero o nota" aria-label="Cerca">
+      <select id="cat" aria-label="Filtra per categoria"><option value="">Tutte le categorie</option></select>
+      <button class="primary" id="addBtn">+ Aggiungi ente</button>
+    </div>
+    <div class="chips" id="chips" aria-label="Categorie"></div>
+
+    <div class="list" role="table" aria-label="Elenco enti">
+      <div class="row head" role="row">
+        <div class="lbl">Ente</div><div class="lbl">Recapito 1</div><div class="lbl">Recapito 2</div><div class="lbl">Note</div><div></div>
+      </div>
+      <div id="rows"><div class="empty">Caricamento…</div></div>
+    </div>
+    <p class="muted small">In rosso le modifiche da fare: enti con una richiesta di modifica o cancellazione in attesa dell'host.</p>
+
+    <section class="panel" id="hostPanel" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <h2>Richieste da gestire</h2>
+        <button id="pwBtn">Cambia password</button>
+      </div>
+      <div id="reqList"></div>
+    </section>
+
+    <section class="panel" id="accPanel" hidden>
+      <h2>Account</h2>
+      <p class="muted small" style="margin:0">Vedi solo il nome utente scelto da ciascuno. Le password sono cifrate e nessuno può leggerle.</p>
+      <div id="accList"></div>
+    </section>
+  </div>
+</div>
+
+<!-- Dialog aggiungi / modifica -->
+<dialog id="dlg">
+  <form id="dlgForm" method="dialog">
+    <h2 id="dlgTitle">Aggiungi ente</h2>
+    <p class="muted small" style="margin:0">I campi con <span class="req-mark">*</span> sono obbligatori.</p>
+    <label for="fNome"><span>Nome dell'ente <span class="req-mark">*</span></span><input id="fNome" required maxlength="200"></label>
+    <label for="fCat"><span>Categoria <span class="req-mark">*</span></span><input id="fCat" required maxlength="80" list="catList" placeholder="Scegli o scrivi una nuova categoria"></label>
+    <datalist id="catList"></datalist>
+    <div class="grid2">
+      <label for="fR1"><span>Recapito 1 <span class="req-mark">*</span></span><input id="fR1" inputmode="tel" maxlength="80" required></label>
+      <label for="fR2">Recapito 2<input id="fR2" inputmode="tel" maxlength="80"></label>
+    </div>
+    <label for="fNote">Note<textarea id="fNote" maxlength="1000"></textarea></label>
+    <label for="fMotivo" id="motivoWrap">Motivo della richiesta (facoltativo)<input id="fMotivo" maxlength="300"></label>
+    <div class="err" id="dlgErr"></div>
+    <div class="dlg-actions">
+      <button type="button" id="dlgCancel">Annulla</button>
+      <button type="submit" class="primary" id="dlgOk">Salva</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Dialog conferma -->
+<dialog id="cdlg">
+  <form id="cForm" method="dialog">
+    <h2 id="cTitle">Conferma</h2>
+    <p id="cText" style="margin:0"></p>
+    <label for="cMotivo" id="cMotivoWrap">Motivo (facoltativo)<input id="cMotivo" maxlength="300"></label>
+    <div class="dlg-actions">
+      <button type="button" id="cCancel">Annulla</button>
+      <button type="submit" class="primary" id="cOk">Conferma</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Dialog password -->
+<dialog id="pdlg">
+  <form id="pForm" method="dialog">
+    <h2>Cambia password</h2>
+    <label for="pDef">Password di ripristino (lascia vuoto per non cambiarla)<input id="pDef" type="text" autocomplete="off"></label>
+    <p class="muted small" style="margin:0">È la password che un utente usa dopo che hai ripristinato il suo account. Al primo accesso dovrà sceglierne una nuova.</p>
+    <label for="pHost">Nuova password host (lascia vuoto per non cambiarla)<input id="pHost" type="text" autocomplete="off"></label>
+    <div class="err" id="pErr"></div>
+    <div class="dlg-actions">
+      <button type="button" id="pCancel">Annulla</button>
+      <button type="submit" class="primary">Salva</button>
+    </div>
+  </form>
+</dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const T_KEY = "rubrica-enti-token";
+  let token = null, role = null, me = null;
+  let enti = [], richieste = [], utenti = [];
+  let pending = null; // credenziali in attesa del cambio password dopo un ripristino
+
+  function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(()=>t.hidden=true,2800); }
+  function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function telHref(s){ return String(s).replace(/[^\d+]/g,""); }
+  const pwOk = p => p.length >= 8 && /[A-Z]/.test(p) && /\d/.test(p);
+  const PW_MSG = "La password deve avere almeno 8 caratteri, con almeno una lettera maiuscola e un numero.";
+
+  // Chiamata al Foglio Google; un errore "SESSIONE" riporta alla pagina di accesso
+  const API_URL = "https://script.google.com/macros/s/AKfycbwE-1zMgXY3gw2m7YkIZj8fL56yhka099AthLLwJnjrbMnAmujYog7BedDjillF-yCa/exec";
+  async function api(fn, ...args){
+    let r;
+    try{
+      const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ fn, args }) });
+      r = await res.json();
+    }catch(_){ throw new Error("Collegamento non riuscito. Controlla la connessione e riprova."); }
+    if (r.err !== undefined){
+      let m = r.err;
+      if (m.startsWith("SESSIONE")){ m = m.replace(/^SESSIONE:\s*/, ""); if (role) logout(m); }
+      throw new Error(m);
+    }
+    return r.ok;
+  }
+  function saveToken(t){ token = t; try{ t ? sessionStorage.setItem(T_KEY, t) : sessionStorage.removeItem(T_KEY); }catch(_){} }
+
+  // ---------- Accesso ----------
+  function showForm(id){
+    ["loginForm","regForm","newPwForm","hostForm"].forEach(f => $(f).hidden = f !== id);
+    document.querySelectorAll("#gate .err").forEach(e => e.textContent = "");
+  }
+  function showLogin(msg){
+    $("gateStatus").textContent = msg || "Accedi con il tuo nome utente e la tua password.";
+    showForm("loginForm");
+  }
+  async function busy(btn, fn){
+    btn.disabled = true;
+    try{ await fn(); } finally { btn.disabled = false; }
+  }
+  $("toggleHost").onclick = () => { showForm("hostForm"); $("hpw").focus(); };
+  $("toggleUser").onclick = () => { showLogin(); $("lUser").focus(); };
+  $("toRegister").onclick = () => { $("gateStatus").textContent = "Crea il tuo account."; showForm("regForm"); $("rUser").focus(); };
+  $("regBack").onclick = () => showLogin();
+
+  $("loginForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const u = $("lUser").value.trim(), p = $("pw").value;
+    busy(e.submitter || $("loginForm").querySelector("[type=submit]"), async () => {
+      try{
+        const r = await api("login", u, p);
+        if (r.cambioPassword){ pending = {u, p}; $("gateStatus").textContent = "Password ripristinata."; showForm("newPwForm"); $("nPw").focus(); return; }
+        enter(r.token, r.dati);
+      }catch(x){ $("loginErr").textContent = x.message; }
+    });
+  });
+
+  $("regForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const u = $("rUser").value.trim(), p = $("rPw").value, err = $("regErr");
+    if (u.length < 3 || u.length > 30){ err.textContent = "Il nome utente deve avere da 3 a 30 caratteri."; return; }
+    if (!pwOk(p)){ err.textContent = PW_MSG; return; }
+    if (p !== $("rPw2").value){ err.textContent = "Le due password non coincidono."; return; }
+    busy($("regOk"), async () => {
+      try{
+        await api("registra", u, p);
+        $("rPw").value = ""; $("rPw2").value = ""; $("lUser").value = u;
+        showLogin("Account creato. Potrai entrare appena l'host lo avrà approvato.");
+      }catch(x){ err.textContent = x.message; }
+    });
+  });
+
+  $("newPwForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const p = $("nPw").value, err = $("nErr");
+    if (!pwOk(p)){ err.textContent = PW_MSG; return; }
+    if (p !== $("nPw2").value){ err.textContent = "Le due password non coincidono."; return; }
+    busy($("newPwForm").querySelector("[type=submit]"), async () => {
+      try{
+        const r = await api("nuovaPassword", pending.u, pending.p, p);
+        pending = null; $("nPw").value = ""; $("nPw2").value = "";
+        enter(r.token, r.dati);
+      }catch(x){ err.textContent = x.message; }
+    });
+  });
+
+  $("hostForm").addEventListener("submit", e => {
+    e.preventDefault();
+    busy($("hostForm").querySelector("[type=submit]"), async () => {
+      try{ const r = await api("loginHost", $("hpw").value); enter(r.token, r.dati); }
+      catch(x){ $("hostErr").textContent = x.message; }
+    });
+  });
+
+  function logout(msg){
+    saveToken(null);
+    role = null; me = null; $("app").hidden = true; $("gate").hidden = false;
+    $("pw").value = ""; $("hpw").value = "";
+    document.querySelectorAll("dialog[open]").forEach(d => d.close());
+    showLogin(msg);
+  }
+  $("logout").onclick = () => logout();
+
+  function enter(t, dati){
+    saveToken(t);
+    role = dati.ruolo; me = dati.username;
+    $("gate").hidden = true; $("app").hidden = false;
+    $("rolePill").textContent = role === "host" ? "Host" : me;
+    $("rolePill").className = "pill" + (role === "host" ? " alert" : "");
+    $("hostPanel").hidden = role !== "host";
+    $("accPanel").hidden = role !== "host";
+    apply(dati);
+  }
+  function apply(dati){
+    if (!dati || !role) return;
+    enti = dati.enti || []; richieste = dati.richieste || []; utenti = dati.utenti || [];
+    render(); renderAccounts();
+  }
+
+  // ---------- Avvio e aggiornamento automatico ----------
+  async function boot(){
+    let saved = null; try{ saved = sessionStorage.getItem(T_KEY); }catch(_){}
+    if (saved){
+      try{ const d = await api("carica", saved); enter(saved, d); return; }catch(_){ saveToken(null); }
+    }
+    showLogin();
+  }
+  setInterval(() => {
+    if (token && role && document.visibilityState === "visible" && !document.querySelector("dialog[open]"))
+      api("carica", token).then(apply).catch(() => {});
+  }, 30000);
+
+  // ---------- Render ----------
+  function numCell(v, label){
+    if (!v) return `<div><span class="cell-lbl lbl">${label}</span><span class="muted">—</span></div>`;
+    return `<div><span class="cell-lbl lbl">${label}</span><span class="num"><a href="tel:${esc(telHref(v))}">${esc(v)}</a><button class="ghost copy" data-copy="${esc(v)}" aria-label="Copia ${esc(v)}">Copia</button></span></div>`;
+  }
+  const NO_CAT = "Senza categoria";
+  let catSel = "";
+  function normCat(s){ s = String(s||"").trim().replace(/\s+/g," "); if (!s) return ""; const hit = enti.find(e => (e.categoria||"").toLowerCase() === s.toLowerCase()); return hit ? hit.categoria : s.charAt(0).toUpperCase() + s.slice(1); }
+  function catOf(e){ return e.categoria || NO_CAT; }
+  function renderCats(){
+    const counts = {};
+    enti.forEach(e => counts[catOf(e)] = (counts[catOf(e)]||0) + 1);
+    const cats = Object.keys(counts).sort((a,b)=>a.localeCompare(b,"it",{sensitivity:"base"}));
+    if (catSel && !counts[catSel]) catSel = "";
+    $("cat").innerHTML = `<option value="">Tutte le categorie (${enti.length})</option>` + cats.map(c => `<option value="${esc(c)}"${c===catSel?" selected":""}>${esc(c)} (${counts[c]})</option>`).join("");
+    $("chips").innerHTML = cats.length ? `<button class="chip" data-cat="" aria-pressed="${catSel===""}">Tutte</button>` + cats.map(c => `<button class="chip" data-cat="${esc(c)}" aria-pressed="${c===catSel}">${esc(c)}<span>${counts[c]}</span></button>`).join("") : "";
+    $("catList").innerHTML = cats.filter(c=>c!==NO_CAT).map(c => `<option value="${esc(c)}"></option>`).join("");
+  }
+  function render(){
+    if (!role) return;
+    renderCats();
+    const q = $("q").value.trim().toLowerCase();
+    const reqBy = {};
+    richieste.forEach(r => (reqBy[r.enteId] ||= []).push(r));
+    const list = enti.slice().sort((a,b)=>String(a.nome||"").localeCompare(String(b.nome||""),"it",{sensitivity:"base"}))
+      .filter(e => !catSel || catOf(e) === catSel)
+      .filter(e => !q || [e.nome,e.categoria,e.recapito1,e.recapito2,e.note].some(v => String(v||"").toLowerCase().includes(q)));
+    let flagged = 0;
+    enti.forEach(e => { if (e.nuovo || reqBy[e.id]) flagged++; });
+    $("sTot").textContent = enti.length; $("sFlag").textContent = flagged;
+
+    if (!enti.length){
+      $("rows").innerHTML = `<div class="empty">La rubrica è vuota. Usa <b>+ Aggiungi ente</b> per inserire il primo numero.</div>`;
+    } else if (!list.length){
+      $("rows").innerHTML = `<div class="empty">Nessun ente trovato${q?` per “${esc(q)}”`:""}${catSel?` nella categoria “${esc(catSel)}”`:""}.</div>`;
+    } else {
+      $("rows").innerHTML = list.map(e => {
+        const rs = reqBy[e.id] || [];
+        const flag = e.nuovo || rs.length;
+        const badges = [
+          e.nuovo ? `<span class="pill alert">Nuovo</span>` : "",
+          rs.some(r=>r.tipo==="modifica") ? `<span class="pill alert">Modifica richiesta</span>` : "",
+          rs.some(r=>r.tipo==="cancellazione") ? `<span class="pill alert">Cancellazione richiesta</span>` : ""
+        ].join("");
+        const acts = role === "host"
+          ? `<button data-act="edit" data-id="${esc(e.id)}">Modifica</button><button class="danger" data-act="del" data-id="${esc(e.id)}">Elimina</button>${e.nuovo?`<button data-act="ok" data-id="${esc(e.id)}">Conferma</button>`:""}`
+          : `<button data-act="reqEdit" data-id="${esc(e.id)}">Richiedi modifica</button><button class="danger" data-act="reqDel" data-id="${esc(e.id)}">Richiedi cancellazione</button>`;
+        return `<div class="row${flag?" flag":""}" role="row">
+          <div class="c-nome"><div class="cat-tag">${esc(catOf(e))}</div><div class="nome">${esc(e.nome)}</div>${badges?`<div class="badges">${badges}</div>`:""}</div>
+          ${numCell(e.recapito1,"Recapito 1")}
+          ${numCell(e.recapito2,"Recapito 2")}
+          <div class="c-note"><span class="cell-lbl lbl">Note</span><div class="note">${e.note?esc(e.note):'<span class="muted">—</span>'}</div></div>
+          <div class="actions">${acts}</div>
+        </div>`;
+      }).join("");
+    }
+    if (role === "host") renderRequests();
+  }
+
+  const FIELDS = [["nome","Nome"],["categoria","Categoria"],["recapito1","Recapito 1"],["recapito2","Recapito 2"],["note","Note"]];
+  function renderRequests(){
+    const byId = Object.fromEntries(enti.map(e=>[e.id,e]));
+    const nuovi = enti.filter(e=>e.nuovo);
+    const rs = richieste.slice().sort((a,b)=>(a.creato||0)-(b.creato||0));
+    if (!rs.length && !nuovi.length){ $("reqList").innerHTML = `<p class="muted" style="margin:0">Nessuna richiesta in attesa.</p>`; return; }
+    const reqHtml = rs.map(r => {
+      const e = byId[r.enteId];
+      const when = r.creato ? new Date(r.creato).toLocaleString("it-IT",{dateStyle:"short",timeStyle:"short"}) : "";
+      const motivo = r.motivo ? `<div class="small"><span class="lbl">Motivo</span> ${esc(r.motivo)}</div>` : "";
+      if (!e) return `<div class="req"><div><b>Richiesta su un ente non più presente</b> <span class="muted small">${when}</span></div><div class="actions" style="justify-content:flex-start"><button data-ract="no" data-rid="${esc(r.id)}">Archivia</button></div></div>`;
+      let body = "";
+      if (r.tipo === "modifica"){
+        const p = r.proposta || {};
+        body = `<div class="diff"><div class="lbl"></div><div class="lbl">Attuale</div><div class="lbl">Proposto</div>${
+          FIELDS.map(([k,l]) => { const a=e[k]||"", b=p[k]||""; return `<div class="lbl">${l}</div><div>${esc(a)||"—"}</div><div class="${a!==b?"chg":""}">${esc(b)||"—"}</div>`; }).join("")
+        }</div>`;
+      }
+      return `<div class="req">
+        <div><span class="pill alert">${r.tipo==="modifica"?"Modifica":"Cancellazione"}</span> <b>${esc(e.nome)}</b> <span class="muted small">${when}</span></div>
+        ${body}${motivo}
+        <div class="actions" style="justify-content:flex-start">
+          <button class="primary" data-ract="yes" data-rid="${esc(r.id)}">${r.tipo==="modifica"?"Applica modifica":"Elimina ente"}</button>
+          <button data-ract="no" data-rid="${esc(r.id)}">Rifiuta</button>
+        </div></div>`;
+    }).join("");
+    const nuoviHtml = nuovi.length ? `<div class="req"><div><span class="pill alert">Nuovi</span> ${nuovi.length} ${nuovi.length===1?"ente aggiunto":"enti aggiunti"} da verificare: ${nuovi.map(e=>`<b>${esc(e.nome)}</b>`).join(", ")}. Usa <b>Conferma</b> nella riga per toglierli dal rosso.</div></div>` : "";
+    $("reqList").innerHTML = reqHtml + nuoviHtml;
+  }
+
+  function renderAccounts(){
+    if (role !== "host") return;
+    const list = utenti.slice().sort((a,b) => (a.stato==="approvato") - (b.stato==="approvato") || a.username.localeCompare(b.username,"it",{sensitivity:"base"}));
+    if (!list.length){ $("accList").innerHTML = `<p class="muted" style="margin:0">Nessun account creato finora.</p>`; return; }
+    $("accList").innerHTML = list.map(u => {
+      const ok = u.stato === "approvato";
+      const when = u.creato ? new Date(u.creato).toLocaleDateString("it-IT") : "";
+      const reset = u.cambioPassword ? ` <span class="pill">Password ripristinata</span>` : "";
+      return `<div class="req">
+        <div><span class="pill${ok?"":" alert"}">${ok?"Approvato":"In attesa"}</span> <b>${esc(u.username)}</b> <span class="muted small">creato il ${when}</span>${reset}</div>
+        <div class="actions" style="justify-content:flex-start">
+          ${ok ? `<button data-aact="reset" data-u="${esc(u.username)}">Ripristina password</button>` : `<button class="primary" data-aact="approve" data-u="${esc(u.username)}">Approva</button>`}
+          <button class="danger" data-aact="del" data-u="${esc(u.username)}">${ok?"Elimina account":"Rifiuta"}</button>
+        </div></div>`;
+    }).join("");
+  }
+
+  // ---------- Azioni ----------
+  let dlgMode = null, dlgId = null;
+  function openDlg(mode, e){
+    dlgMode = mode; dlgId = e ? e.id : null;
+    $("dlgTitle").textContent = mode==="add" ? "Aggiungi ente" : mode==="reqEdit" ? "Richiedi modifica" : "Modifica ente";
+    $("dlgOk").textContent = mode==="reqEdit" ? "Invia richiesta" : "Salva";
+    $("motivoWrap").hidden = mode !== "reqEdit";
+    $("fNome").value = e?.nome || ""; $("fCat").value = e?.categoria || ""; $("fR1").value = e?.recapito1 || ""; $("fR2").value = e?.recapito2 || ""; $("fNote").value = e?.note || ""; $("fMotivo").value = "";
+    $("dlgErr").textContent = "";
+    $("dlg").showModal(); $("fNome").focus();
+  }
+  $("dlgCancel").onclick = () => $("dlg").close();
+  $("dlgForm").addEventListener("submit", ev => {
+    ev.preventDefault();
+    const v = { nome:$("fNome").value.trim(), categoria:normCat($("fCat").value), recapito1:$("fR1").value.trim(), recapito2:$("fR2").value.trim(), note:$("fNote").value.trim() };
+    if (!v.nome){ $("dlgErr").textContent = "Inserisci il nome dell'ente."; return; }
+    if (!v.categoria){ $("dlgErr").textContent = "Inserisci la categoria."; return; }
+    if (!v.recapito1){ $("dlgErr").textContent = "Inserisci il recapito 1."; return; }
+    if (dlgMode === "reqEdit"){
+      const e = enti.find(x=>x.id===dlgId);
+      if (e && FIELDS.every(([k]) => (e[k]||"") === v[k])){ $("dlgErr").textContent = "Non hai cambiato nessun campo."; return; }
+    }
+    busy($("dlgOk"), async () => {
+      try{
+        if (dlgMode === "add"){
+          apply(await api("aggiungiEnte", token, v));
+          toast("Ente aggiunto");
+        } else if (dlgMode === "reqEdit"){
+          apply(await api("richiedi", token, dlgId, "modifica", v, $("fMotivo").value.trim()));
+          toast("Richiesta di modifica inviata all'host");
+        } else {
+          apply(await api("modificaEnte", token, dlgId, v));
+          toast("Modifica salvata");
+        }
+        $("dlg").close();
+      }catch(err){ $("dlgErr").textContent = err.message; }
+    });
+  });
+
+  let cAction = null;
+  function confirmDlg(title, text, withMotivo, okLabel, fn){
+    $("cTitle").textContent = title; $("cText").textContent = text; $("cMotivoWrap").hidden = !withMotivo; $("cMotivo").value = "";
+    $("cOk").textContent = okLabel; cAction = fn; $("cdlg").showModal();
+  }
+  $("cCancel").onclick = () => $("cdlg").close();
+  $("cForm").addEventListener("submit", ev => {
+    ev.preventDefault();
+    busy($("cOk"), async () => {
+      try{ await cAction($("cMotivo").value.trim()); $("cdlg").close(); }catch(err){ toast(err.message); }
+    });
+  });
+
+  $("addBtn").onclick = () => openDlg("add");
+  $("q").addEventListener("input", render);
+  $("cat").addEventListener("change", () => { catSel = $("cat").value; render(); });
+  $("chips").addEventListener("click", ev => { const b = ev.target.closest("[data-cat]"); if (!b) return; catSel = b.dataset.cat; render(); });
+
+  $("rows").addEventListener("click", async ev => {
+    const c = ev.target.closest("[data-copy]");
+    if (c){
+      const v = c.dataset.copy;
+      try{ await navigator.clipboard.writeText(v); toast("Copiato: " + v); }
+      catch(_){ const s = window.getSelection(), r = document.createRange(); r.selectNodeContents(c.previousElementSibling); s.removeAllRanges(); s.addRange(r); toast("Numero selezionato: copialo con Ctrl+C"); }
+      return;
+    }
+    const b = ev.target.closest("[data-act]"); if (!b) return;
+    const e = enti.find(x=>x.id===b.dataset.id); if (!e) return;
+    const act = b.dataset.act;
+    if (act === "reqEdit") openDlg("reqEdit", e);
+    else if (act === "edit") openDlg("edit", e);
+    else if (act === "reqDel") confirmDlg("Richiedi cancellazione", `Chiedi all'host di eliminare “${e.nome}”. L'ente resterà in rosso finché la richiesta non viene gestita.`, true, "Invia richiesta",
+      async m => { apply(await api("richiedi", token, e.id, "cancellazione", null, m)); toast("Richiesta di cancellazione inviata all'host"); });
+    else if (act === "del") confirmDlg("Elimina ente", `Eliminare “${e.nome}” dalla rubrica? L'operazione non si può annullare.`, false, "Elimina",
+      async () => { apply(await api("eliminaEnte", token, e.id)); toast("Ente eliminato"); });
+    else if (act === "ok") busy(b, async () => { try{ apply(await api("confermaEnte", token, e.id)); toast("Ente confermato"); }catch(err){ toast(err.message); } });
+  });
+
+  $("reqList").addEventListener("click", ev => {
+    const b = ev.target.closest("[data-ract]"); if (!b) return;
+    const r = richieste.find(x=>x.id===b.dataset.rid); if (!r) return;
+    const yes = b.dataset.ract === "yes";
+    busy(b, async () => {
+      try{
+        apply(await api("gestisciRichiesta", token, r.id, yes));
+        toast(!yes ? "Richiesta rifiutata" : r.tipo === "modifica" ? "Modifica applicata" : "Ente eliminato");
+      }catch(err){ toast(err.message); }
+    });
+  });
+
+  $("accList").addEventListener("click", ev => {
+    const b = ev.target.closest("[data-aact]"); if (!b) return;
+    const name = b.dataset.u, act = b.dataset.aact;
+    if (act === "approve"){
+      busy(b, async () => { try{ apply(await api("approvaUtente", token, name)); toast(`Account “${name}” approvato`); }catch(err){ toast(err.message); } });
+    } else if (act === "reset"){
+      confirmDlg("Ripristina password", `La password di “${name}” verrà sostituita con la password di ripristino. Al prossimo accesso dovrà sceglierne una nuova. Ricordati di comunicargli la password di ripristino.`, false, "Ripristina",
+        async () => { apply(await api("ripristinaUtente", token, name)); toast(`Password di “${name}” ripristinata`); });
+    } else if (act === "del"){
+      const ok = utenti.find(u => u.username === name)?.stato === "approvato";
+      confirmDlg(ok ? "Elimina account" : "Rifiuta account", `L'account “${name}” verrà eliminato e non potrà più entrare. Potrà crearne uno nuovo, che dovrai approvare di nuovo.`, false, "Elimina",
+        async () => { apply(await api("eliminaUtente", token, name)); toast(`Account “${name}” eliminato`); });
+    }
+  });
+
+  $("pwBtn").onclick = () => { $("pDef").value=""; $("pHost").value=""; $("pErr").textContent=""; $("pdlg").showModal(); };
+  $("pCancel").onclick = () => $("pdlg").close();
+  $("pForm").addEventListener("submit", ev => {
+    ev.preventDefault();
+    const d = $("pDef").value, h = $("pHost").value;
+    if (!d && !h){ $("pdlg").close(); return; }
+    if ((d && d.length < 6) || (h && h.length < 6)){ $("pErr").textContent = "Usa almeno 6 caratteri."; return; }
+    if (d && h && d === h){ $("pErr").textContent = "Le due password devono essere diverse."; return; }
+    busy($("pForm").querySelector("[type=submit]"), async () => {
+      try{
+        const r = await api("cambiaPassword", token, d, h);
+        saveToken(r.token); apply(r.dati);
+        $("pdlg").close(); toast("Password aggiornate");
+      }catch(err){ $("pErr").textContent = err.message; }
+    });
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>
