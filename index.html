@@ -108,6 +108,15 @@ select{font:inherit;color:inherit;background:var(--surface);border:1px solid var
 .diff{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:4px 12px;font-size:.92rem;overflow-x:auto}
 .diff .chg{color:var(--alert);font-weight:600}
 .diff div{overflow-wrap:anywhere}
+.inline-form{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.inline-form label{flex:1 1 220px;min-width:0}
+.log-wrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:8px}
+table.log{width:100%;border-collapse:collapse;font-size:.9rem}
+table.log th{position:sticky;top:0;background:var(--bg);text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:8px 10px}
+table.log td{padding:8px 10px;border-top:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+table.log td.when{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--muted)}
+table.log td.who{font-weight:600;white-space:nowrap}
+table.log tr.fail td.what{color:var(--alert)}
 
 /* Dialog */
 dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);padding:0;width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
@@ -226,7 +235,27 @@ dialog form{padding:22px;display:flex;flex-direction:column;gap:12px}
     <section class="panel" id="accPanel" hidden>
       <h2>Account</h2>
       <p class="muted small" style="margin:0">Vedi solo il nome utente scelto da ciascuno. Le password sono cifrate e nessuno può leggerle.</p>
+      <form id="newAccForm" class="inline-form">
+        <label for="naUser">Crea un nuovo account<input id="naUser" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="30" placeholder="Nome utente"></label>
+        <button class="primary" type="submit" id="naOk">Crea account</button>
+      </form>
+      <p class="muted small" style="margin:0">Il nuovo account è già approvato e usa la password di ripristino: comunicala alla persona, che dovrà cambiarla al primo accesso.</p>
+      <div class="err" id="naErr"></div>
       <div id="accList"></div>
+    </section>
+
+    <section class="panel" id="logPanel" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <h2>Registro attività</h2>
+        <button id="logRefresh">Aggiorna</button>
+      </div>
+      <input id="logQ" type="search" placeholder="Filtra per utente, azione o ente" aria-label="Filtra il registro">
+      <div class="log-wrap">
+        <table class="log">
+          <thead><tr><th>Quando</th><th>Chi</th><th>Azione</th><th>Dettaglio</th></tr></thead>
+          <tbody id="logBody"><tr><td colspan="4" class="muted">Caricamento…</td></tr></tbody>
+        </table>
+      </div>
     </section>
   </div>
 </div>
@@ -397,12 +426,14 @@ dialog form{padding:22px;display:flex;flex-direction:column;gap:12px}
     $("rolePill").className = "pill" + (role === "host" ? " alert" : "");
     $("hostPanel").hidden = role !== "host";
     $("accPanel").hidden = role !== "host";
+    $("logPanel").hidden = role !== "host";
     apply(dati);
   }
   function apply(dati){
     if (!dati || !role) return;
     enti = dati.enti || []; richieste = dati.richieste || []; utenti = dati.utenti || [];
     render(); renderAccounts();
+    if (role === "host") loadLog();
   }
 
   // ---------- Avvio e aggiornamento automatico ----------
@@ -417,6 +448,37 @@ dialog form{padding:22px;display:flex;flex-direction:column;gap:12px}
     if (token && role && document.visibilityState === "visible" && !document.querySelector("dialog[open]"))
       api("carica", token).then(apply).catch(() => {});
   }, 30000);
+
+  // ---------- Registro attività (host) ----------
+  let logRows = [];
+  async function loadLog(){
+    try{ logRows = await api("caricaLog", token) || []; renderLog(); }
+    catch(err){ $("logBody").innerHTML = `<tr><td colspan="4" class="muted">${esc(err.message)}</td></tr>`; }
+  }
+  function renderLog(){
+    const q = $("logQ").value.trim().toLowerCase();
+    const rows = logRows.filter(r => !q || [r.chi, r.azione, r.dettaglio].some(v => String(v).toLowerCase().includes(q)));
+    $("logBody").innerHTML = rows.length ? rows.map(r => `<tr class="${/non riuscito/i.test(r.azione)?"fail":""}">
+      <td class="when">${r.quando ? new Date(r.quando).toLocaleString("it-IT",{dateStyle:"short",timeStyle:"short"}) : ""}</td>
+      <td class="who">${esc(r.chi)}</td><td class="what">${esc(r.azione)}</td><td>${esc(r.dettaglio)}</td></tr>`).join("")
+      : `<tr><td colspan="4" class="muted">${logRows.length ? "Nessuna attività corrisponde al filtro." : "Nessuna attività registrata finora."}</td></tr>`;
+  }
+  $("logRefresh").onclick = () => busy($("logRefresh"), loadLog);
+  $("logQ").addEventListener("input", renderLog);
+
+  $("newAccForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("naUser").value.trim(), err = $("naErr");
+    err.textContent = "";
+    if (name.length < 3 || name.length > 30){ err.textContent = "Il nome utente deve avere da 3 a 30 caratteri."; return; }
+    busy($("naOk"), async () => {
+      try{
+        apply(await api("creaUtente", token, name));
+        $("naUser").value = "";
+        toast(`Account “${name}” creato: comunica la password di ripristino`);
+      }catch(x){ err.textContent = x.message; }
+    });
+  });
 
   // ---------- Render ----------
   function numCell(v, label){
@@ -514,7 +576,7 @@ dialog form{padding:22px;display:flex;flex-direction:column;gap:12px}
     $("accList").innerHTML = list.map(u => {
       const ok = u.stato === "approvato";
       const when = u.creato ? new Date(u.creato).toLocaleDateString("it-IT") : "";
-      const reset = u.cambioPassword ? ` <span class="pill">Password ripristinata</span>` : "";
+      const reset = u.cambioPassword ? ` <span class="pill">Deve cambiare password</span>` : "";
       return `<div class="req">
         <div><span class="pill${ok?"":" alert"}">${ok?"Approvato":"In attesa"}</span> <b>${esc(u.username)}</b> <span class="muted small">creato il ${when}</span>${reset}</div>
         <div class="actions" style="justify-content:flex-start">
